@@ -1,0 +1,18 @@
+﻿@page "/gameover"
+@inject NavigationManager NavigationManager
+@inject IJSRuntime Js
+
+<h1 style="color:red">Niestety to nie jest poprawna odpowiedź.</h1>
+<br/>
+<p style="color:red"KONIEC GRY</p>
+<br />
+<button class="btn btn-danger" @onclick="StartQuiz">Spróbuj jeszcze raz</button>
+
+@code {
+
+    private async Task StartQuiz()
+    {
+        await Js.InvokeVoidAsync("localStorage.setItem", "_cookiecategory6", "100");
+        NavigationManager.NavigateTo("/question");
+    }
+}

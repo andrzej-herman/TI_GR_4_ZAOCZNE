@@ -1,0 +1,18 @@
+﻿@page "/"
+@inject NavigationManager NavigationManager
+@inject IJSRuntime Js
+
+<h1>Witamy w Quizie</h1>
+<p>Spróbuj odpowiedzieć na 7 pytań</p>
+<p>Powodzenia !!!</p>
+<br/>
+<button class="btn btn-primary" @onclick="StartQuiz">Rozpocznij quiz</button>
+
+@code {
+
+    private async Task StartQuiz()
+    {
+        await Js.InvokeVoidAsync("localStorage.setItem", "_cookiecategory6", "100");
+        NavigationManager.NavigateTo("/question");  
+    }
+}

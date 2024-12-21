@@ -1,0 +1,100 @@
+﻿@page "/question"
+@using Quiz.Appliaction.Services
+@using Quiz.Data
+@inject NavigationManager NavigationManager
+@inject IJSRuntime Js
+@inject IGameService GameService
+
+<style>
+    .answer {
+    min-width: 300px;
+    margin: 25px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: lightblue;
+    color: #000000;
+    cursor: pointer;    
+    }
+
+    .answer:hover {
+    background-color: blue;
+    color: #ffffff;
+    }   
+</style>
+
+@if (isLoading)
+{
+    <h5>@loaderText</h5>
+}
+
+@if (question != null && !isLoading)
+{
+    <h5>Pytanie za @question.Category pkt.</h5>
+    <h4>@question.Content</h4>
+    <br />
+    <div style="max-width: 700px; display: flex; align-items: center; justify-content:space-between; flex-wrap:wrap;">
+        @foreach (var answer in question.Answers!)
+        {
+            <div class="answer" @onclick="() => SetAnswer(answer.Id)">@answer.Content</div>
+        }
+    </div>
+}
+
+
+
+@code {
+
+
+    private int currentCategory;
+    private string? loaderText;
+    private bool isLoading;
+    private QuestionDto? question;
+
+    override protected async Task OnInitializedAsync()
+    {
+        loaderText = "Trwa losowanie pytania ...";
+        isLoading = true;
+        await GetQuestion();
+    }
+
+    private async Task GetQuestion()
+    {
+        var cat = await Js.InvokeAsync<string>("localStorage.getItem", "_cookiecategory6");
+        currentCategory = int.Parse(cat!);
+        loaderText = "Trwa losowanie pytania ...";
+        isLoading = true;
+        question = await GameService.GetQuestion(currentCategory);
+        isLoading = false;
+        StateHasChanged();
+    }
+
+
+    private async Task SetAnswer(Guid answerId)
+    {
+        question = null;
+        loaderText = "Sprawdzanie odpowiedzi ...";
+        isLoading = true;
+        var check = await GameService.CheckAnswer(answerId, currentCategory);
+        if (check!.IsCorrect)
+        {
+            if (check!.NextCategory == 0)
+            {
+                NavigationManager.NavigateTo("/success");
+            }
+            else
+            {
+                await Js.InvokeVoidAsync("localStorage.setItem", "_cookiecategory6", check.NextCategory.ToString());
+                NavigationManager.NavigateTo($"/goodanswer");
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/gameover");
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+}
